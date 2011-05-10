@@ -1,0 +1,18 @@
+MaterialDef random MaterialDef {
+
+    MaterialParameters {
+		Texture2D Texture
+		Int TexWidth
+		Int TexHeight
+    }
+
+    Technique {
+        VertexShader GLSL100:   Shaders/gameOfLife.vert
+        FragmentShader GLSL100: Shaders/gameOfLife.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+    }
+
+}
