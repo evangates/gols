@@ -1,39 +1,9 @@
-/*
- * Copyright (c) 2009-2010 jMonkeyEngine
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * * Neither the name of 'jMonkeyEngine' nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package gameOfLife;
 
+import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.ViewPort;
@@ -45,11 +15,13 @@ import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
+import java.awt.Color;
+import java.util.Random;
 
 /**
- * This test renders a scene to a texture, then displays the texture on a cube.
+ * Game of life simulation run in a shader program.
  */
-public class Main extends SimpleApplication {
+public class GameOfLife extends SimpleApplication {
 
     private Geometry offQuad;
 	private int width;
@@ -62,15 +34,17 @@ public class Main extends SimpleApplication {
 	private Texture2D offTexture;
 	private Material offMaterial;
 	private Material quadMaterial;
+	
+	private final static ColorRGBA deadColor = ColorRGBA.Black;
+	private final static ColorRGBA aliveColor = ColorRGBA.White;
+	private final static float chanceToBeAlive = 0.50f;
 
     public static void main(String[] args){
         AppSettings settings = new AppSettings(true);
 		settings.setVSync(true);
 		
-		Main app = new Main();
+		GameOfLife app = new GameOfLife();
 		app.setSettings(settings);
-
-		app.setShowSettings(true);
 
 		app.start();
     }
@@ -81,7 +55,6 @@ public class Main extends SimpleApplication {
         // create a pre-view. a view that is rendered before the main view
         offView = renderManager.createPreView("Offscreen View", offCamera);
         offView.setClearEnabled(false);
-//        offView.setBackgroundColor(ColorRGBA.DarkGray);
 
 		//setup framebuffer's cam
         offCamera.setFrustumPerspective(45f, 1f, 1f, 1000f);
@@ -97,7 +70,7 @@ public class Main extends SimpleApplication {
 		offBuffer.setColorTexture(offTexture);
         
         // setup framebuffer's scene
-		Texture seedTexture = assetManager.loadTexture("Textures/seed.png");
+		Texture seedTexture = createSeedTexture();
 		offTexture.setImage(seedTexture.getImage());
 		
 		// scale seed texture
@@ -108,6 +81,8 @@ public class Main extends SimpleApplication {
 		offMaterial.setTexture("m_Texture", offTexture);
 		offMaterial.setInt("m_TexWidth", width);
 		offMaterial.setInt("m_TexHeight", height);
+		offMaterial.setColor("m_DeadColor", deadColor);
+		offMaterial.setColor("m_AliveColor", aliveColor);
 		
         offQuad = new Geometry("offquad", new Quad(width, height));
         offQuad.setMaterial(offMaterial);
@@ -119,7 +94,6 @@ public class Main extends SimpleApplication {
         offView.setOutputFrameBuffer(offBuffer);
     }
 
-    @Override
     public void simpleInitApp() {
         width = cam.getWidth();
 		height = cam.getHeight();
@@ -137,4 +111,25 @@ public class Main extends SimpleApplication {
 		quad.move(0, 0, -1);
         guiNode.attachChild(quad);
     }
+	
+	private static Color toAWTColor(ColorRGBA input) {
+		return new Color(input.r, input.g, input.b, input.a);
+	}
+	
+	private Texture createSeedTexture() {
+		PaintableTexture paintableTexture = new PaintableTexture(width, height);
+		Random r = new Random();
+		
+		paintableTexture.setBackground(toAWTColor(deadColor));
+		
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < height; j++) {
+				if (r.nextFloat() >= chanceToBeAlive) {
+					paintableTexture.setPixel(i, j, toAWTColor(aliveColor));
+				}
+			}
+		}
+		
+		return paintableTexture.getTexture();
+	}
 }

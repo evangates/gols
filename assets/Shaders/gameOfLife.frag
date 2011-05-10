@@ -2,6 +2,9 @@ uniform sampler2D m_Texture;
 uniform int m_TexWidth;
 uniform int m_TexHeight;
 
+uniform vec4 m_AliveColor;
+uniform vec4 m_DeadColor;
+
 varying vec2 TexCoord;
 
 float gapS = 1.0 / m_TexWidth;		// horizontal gap between two texels/pixels
@@ -21,56 +24,53 @@ void main() {
 
 	int neighbors = 0;
 
-	if ( texture2D(m_Texture, TexCoord + offsets[0]).g > 0.5) {
+	if ( texture2D(m_Texture, TexCoord + offsets[0]) == m_AliveColor) {
 		neighbors++;
 	}
-	if ( texture2D(m_Texture, TexCoord + offsets[1]).g > 0.5) {
+	if ( texture2D(m_Texture, TexCoord + offsets[1]) == m_AliveColor) {
 		neighbors++;
 	}
-	if ( texture2D(m_Texture, TexCoord + offsets[2]).g > 0.5) {
+	if ( texture2D(m_Texture, TexCoord + offsets[2]) == m_AliveColor) {
 		neighbors++;
 	}
-	if ( texture2D(m_Texture, TexCoord + offsets[3]).g > 0.5) {
+	if ( texture2D(m_Texture, TexCoord + offsets[3]) == m_AliveColor) {
 		neighbors++;
 	}
-	if ( texture2D(m_Texture, TexCoord + offsets[4]).g > 0.5) {
+	if ( texture2D(m_Texture, TexCoord + offsets[4]) == m_AliveColor) {
 		neighbors++;
 	}
-	if ( texture2D(m_Texture, TexCoord + offsets[5]).g > 0.5) {
+	if ( texture2D(m_Texture, TexCoord + offsets[5]) == m_AliveColor) {
 		neighbors++;
 	}
-	if ( texture2D(m_Texture, TexCoord + offsets[6]).g > 0.5) {
+	if ( texture2D(m_Texture, TexCoord + offsets[6]) == m_AliveColor) {
 		neighbors++;
 	}
-	if ( texture2D(m_Texture, TexCoord + offsets[7]).g > 0.5) {
+	if ( texture2D(m_Texture, TexCoord + offsets[7]) == m_AliveColor) {
 		neighbors++;
 	}
 	
 	vec4 color = texture2D(m_Texture, TexCoord);
-	color = vec4(0.0, color.g, 0.0, 1.0);
-	vec4 deadColor = vec4(0.0, 0.0, 0.0, 1.0);
-	vec4 aliveColor = vec4(0.0, 1.0, 0.0, 1.0); 
 
 	// living
-	if (color.g > 0.5) {
+	if (color == m_AliveColor) {
 		// cell dies
 		if (neighbors < 2 || neighbors > 3) {
-			color = deadColor;
+			color = m_DeadColor;
 		}
 		// cell refreshes
 		else {
-			color = aliveColor;
+			color = m_AliveColor;
 		}
 	}
 	// dead cell
 	else {
 		// cell comes alive
 		if (neighbors == 3) {
-			color = aliveColor;
+			color = m_AliveColor;
 		}
 		// cell dies
 		else {
-			color = deadColor;
+			color = m_DeadColor;
 		}
 	}
 
