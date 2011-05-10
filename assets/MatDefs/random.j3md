@@ -4,9 +4,6 @@ MaterialDef random MaterialDef {
 		Texture2D Texture
 		Int TexWidth
 		Int TexHeight
-
-		Color AliveColor
-		Color DeadColor
     }
 
     Technique {

@@ -1,6 +1,5 @@
 package gameOfLife;
 
-import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -35,15 +34,17 @@ public class GameOfLife extends SimpleApplication {
 	private Material offMaterial;
 	private Material quadMaterial;
 	
-	private final static ColorRGBA deadColor = ColorRGBA.Black;
-	private final static ColorRGBA aliveColor = ColorRGBA.White;
 	private final static float chanceToBeAlive = 0.50f;
 
     public static void main(String[] args){
         AppSettings settings = new AppSettings(true);
 		settings.setVSync(true);
+		settings.setFullscreen(false);
+		
+//		System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
 		
 		GameOfLife app = new GameOfLife();
+		app.setPauseOnLostFocus(false);
 		app.setSettings(settings);
 
 		app.start();
@@ -81,8 +82,8 @@ public class GameOfLife extends SimpleApplication {
 		offMaterial.setTexture("m_Texture", offTexture);
 		offMaterial.setInt("m_TexWidth", width);
 		offMaterial.setInt("m_TexHeight", height);
-		offMaterial.setColor("m_DeadColor", deadColor);
-		offMaterial.setColor("m_AliveColor", aliveColor);
+//		offMaterial.setColor("m_DeadColor", deadColor);
+//		offMaterial.setColor("m_AliveColor", aliveColor);
 		
         offQuad = new Geometry("offquad", new Quad(width, height));
         offQuad.setMaterial(offMaterial);
@@ -112,20 +113,16 @@ public class GameOfLife extends SimpleApplication {
         guiNode.attachChild(quad);
     }
 	
-	private static Color toAWTColor(ColorRGBA input) {
-		return new Color(input.r, input.g, input.b, input.a);
-	}
-	
 	private Texture createSeedTexture() {
 		PaintableTexture paintableTexture = new PaintableTexture(width, height);
 		Random r = new Random();
 		
-		paintableTexture.setBackground(toAWTColor(deadColor));
+		paintableTexture.setBackground(Color.black);
 		
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				if (r.nextFloat() >= chanceToBeAlive) {
-					paintableTexture.setPixel(i, j, toAWTColor(aliveColor));
+					paintableTexture.setPixel(i, j, new Color(r.nextFloat(), r.nextFloat(), r.nextFloat()));
 				}
 			}
 		}
