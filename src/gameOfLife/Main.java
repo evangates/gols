@@ -58,9 +58,8 @@ public class Main extends SimpleApplication {
 	private ViewPort offView;
 	private Camera offCamera;
 	
-	private FrameBuffer[] buffers;
-	private Texture2D[] textures;
-	private int currentIndex;
+	private FrameBuffer offBuffer;
+	private Texture2D offTexture;
 	private Material offMaterial;
 	private Material quadMaterial;
 
@@ -89,45 +88,35 @@ public class Main extends SimpleApplication {
         offCamera.setLocation(new Vector3f(0f, 0f, -5f));
         offCamera.lookAt(new Vector3f(0f, 0f, 0f), Vector3f.UNIT_Y);
 
-        // create offscreen framebuffer
-		currentIndex = 0;
-		buffers = new FrameBuffer[2];
-		buffers[0] = new FrameBuffer(width, height, 0);
-		buffers[1] = new FrameBuffer(width, height, 0);
-		
 		//setup framebuffer's texture
-		textures = new Texture2D[2];
-		textures[0] = new Texture2D(width, height, Format.RGBA8);
-		textures[0].setWrap(Texture.WrapMode.Repeat);
-		textures[1] = new Texture2D(width, height, Format.RGBA8);
-		textures[1].setWrap(Texture.WrapMode.Repeat);
+		offTexture = new Texture2D(width, height, Format.RGBA8);
+		offTexture.setWrap(Texture.WrapMode.Repeat);
 
-        //setup framebuffer to use texture
-        //offBuffer.setDepthBuffer(Format.Depth);
-		buffers[0].setColorTexture(textures[0]);
-		buffers[1].setColorTexture(textures[1]);
+		// create offscreen framebuffer
+		offBuffer = new FrameBuffer(width, height, 0);
+		offBuffer.setColorTexture(offTexture);
         
-        //set viewport to render to offscreen framebuffer
-        offView.setOutputFrameBuffer(buffers[currentIndex]);
-		
         // setup framebuffer's scene
 		Texture seedTexture = assetManager.loadTexture("Textures/seed.png");
-		textures[0].setImage(seedTexture.getImage());
-		textures[0].getImage().setWidth(width);
-		textures[0].getImage().setHeight(height);
+		offTexture.setImage(seedTexture.getImage());
 		
-		Quad quad = new Quad(width, height);
+		// scale seed texture
+		offTexture.getImage().setWidth(width);
+		offTexture.getImage().setHeight(height);
+		
         offMaterial = new Material(assetManager, "MatDefs/random.j3md");
-		offMaterial.setTexture("m_Texture", textures[currentIndex]);
+		offMaterial.setTexture("m_Texture", offTexture);
 		offMaterial.setInt("m_TexWidth", width);
 		offMaterial.setInt("m_TexHeight", height);
 		
-        offQuad = new Geometry("offquad", quad);
+        offQuad = new Geometry("offquad", new Quad(width, height));
         offQuad.setMaterial(offMaterial);
 		offQuad.setQueueBucket(Bucket.Gui);
+		offQuad.updateGeometricState();
 
-        // attach the scene to the viewport to be rendered
+        // attach the scene and set rendering to the off buffer
         offView.attachScene(offQuad);
+        offView.setOutputFrameBuffer(offBuffer);
     }
 
     @Override
@@ -141,23 +130,11 @@ public class Main extends SimpleApplication {
         Quad quadShape = new Quad(width, height);
 		Geometry quad = new Geometry("mainQuad", quadShape);
         quadMaterial = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
-        quadMaterial.setTexture("ColorMap", textures[currentIndex]);
+        quadMaterial.setTexture("ColorMap", offTexture);
         
 		quad.setMaterial(quadMaterial);
 		
 		quad.move(0, 0, -1);
         guiNode.attachChild(quad);
-    }
-
-    @Override
-    public void simpleUpdate(float tpf){
-//        Quaternion q = new Quaternion();
-//        angle += tpf;
-//        angle %= FastMath.TWO_PI;
-//        q.fromAngles(angle, 0, angle);
-//
-//        offBox.setLocalRotation(q);
-        offQuad.updateLogicalState(tpf);
-        offQuad.updateGeometricState();
     }
 }
