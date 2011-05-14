@@ -1,30 +1,33 @@
 uniform sampler2D m_Texture;
 uniform int m_TexWidth;
 uniform int m_TexHeight;
+uniform float m_Seed;
 
-const float step = 0.1;
-const float lonelyThreshold = 2.0;
-const float overcrowdedThreshold = 3.0;
-const float comeToLifeValue = 3.0;
-const float comeToLifeTolerance = 0.01;
+const float step = 0.005;
+const int lonelyThreshold = 2;
+const int overcrowdedThreshold = 3;
+const int comeToLifeValue = 3;
 const float aliveThreshold = 1.0;
 const float fullyDecayed = 0.0;
 const float alive = 1.0;
+const float spontaneousBirthThreshold = 0.9995;
 
 varying vec2 TexCoord;
-
-const vec4 m_DeadColor = vec4(0.0);
-const vec4 m_AliveColor = vec4(1.0);
 
 float gapS = 1.0 / m_TexWidth;		// horizontal gap between two texels/pixels
 float gapT = 1.0 / m_TexHeight;		// vertical gap between two texels/pixels
 
-float nextValue(float value, float sum) {
+float rand()
+{
+  return fract(sin(dot(vec2(m_Seed + TexCoord.x, m_Seed + TexCoord.y), vec2(12.9898, 78.233)))* 43758.5453);
+}
+
+float nextValue(float value, int neighbors) {
 	// alive
 	if (value >= aliveThreshold) {
 		// decay
-		if (sum < lonelyThreshold || sum > overcrowdedThreshold) {
-			return mix(value, fullyDecayed, step);
+		if (neighbors < lonelyThreshold || neighbors > overcrowdedThreshold) {
+			return max(value - step, 0.0);
 		}
 		// refresh
 		else {
@@ -34,12 +37,12 @@ float nextValue(float value, float sum) {
 	// dead
 	else {
 		// comes to life
-		if (lonelyThreshold <= sum && sum <= overcrowdedThreshold) {
+		if (neighbors == comeToLifeValue) {
 			return alive;
 		}
 		// decay
 		else {
-			return mix(value, fullyDecayed, step);
+			return max(value - step, 0.0);
 		}
 	}
 }
@@ -56,50 +59,33 @@ void main() {
 	offsets[6] = vec2( -gapS, 0.0);		// west
 	offsets[7] = vec2( -gapS, gapT);	// northwest
 
-	int neighbors = 0;
+	int nr = 0;
+	int ng = 0;
+	int nb = 0;
 
-	vec4 colorSum = vec4(0.0);
 	vec4 color = texture2D(m_Texture, TexCoord);
 
 	for (int i = 0; i < 8; i++) {
-		colorSum += texture2D(m_Texture, TexCoord + offsets[i]);
+		vec4 offsetValue = texture2D(m_Texture, TexCoord + offsets[i]);
+
+		if (offsetValue.r >= aliveThreshold)
+			nr++;
+		if (offsetValue.g >= aliveThreshold)
+			ng++;
+		if (offsetValue.b >= aliveThreshold)
+			nb++;
 	}
 
-	color.r = nextValue(color.r, colorSum.r);
-	color.g = nextValue(color.g, colorSum.g);
-	color.b = nextValue(color.b, colorSum.b);
+	color.r = nextValue(color.r, nr);
+//	color.rb = vec2(0.0);
+	color.g = nextValue(color.g, ng);
+	color.b = nextValue(color.b, nb);
 
-/*
-	// count neighbors
-	for (int i = 0; i < 8; i++) {
-		if (texture2D(m_Texture, TexCoord + offsets[i]) == m_AliveColor) {
-			neighbors++;
-		}
+	// sometimes bring a dead pixel to life
+	if (all(lessThan(color.rgb, vec3(aliveThreshold))) && rand() >= spontaneousBirthThreshold) {
+		color = vec4(1.0);
+		//color.g = 1.0;
 	}
-	
-	// living
-	if (color == m_AliveColor) {
-		// cell dies
-		if (neighbors < 2 || neighbors > 3) {
-			color = mix(color, m_DeadColor, 0.1);
-		}
-		// cell refreshes
-		else {
-			color = m_AliveColor;
-		}
-	}
-	// dead cell
-	else {
-		// cell comes alive
-		if (neighbors == 3) {
-			color = m_AliveColor;
-		}
-		// cell dies
-		else {
-			color = mix(color, m_DeadColor, 0.05);
-		}
-	}
-*/
 
 	gl_FragColor = color;
 }

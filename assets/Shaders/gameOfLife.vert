@@ -7,5 +7,5 @@ varying vec2 TexCoord;
  
 void main(){
     gl_Position = g_WorldViewProjectionMatrix * vec4(inPosition, 1.0);
-	TexCoord = inTexCoord;	
+	TexCoord = inTexCoord;
 }

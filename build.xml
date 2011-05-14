@@ -10,7 +10,14 @@
 <project name="BasicGameTemplate" default="default" basedir=".">
     <description>Builds, tests, and runs the project BasicGameTemplate.</description>
     <import file="nbproject/build-impl.xml"/>
-
+	
+	<target name="-post-jar" depends="copy-natives" />
+	
+	<target name="copy-natives">
+		<copy todir="dist/lib/native">
+			<fileset dir="./lib/native" />
+		</copy>
+	</target>
     <!--
 
     There exist several targets which are by default empty and which can be 

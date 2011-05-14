@@ -4,6 +4,7 @@ MaterialDef random MaterialDef {
 		Texture2D Texture
 		Int TexWidth
 		Int TexHeight
+		Float Seed
     }
 
     Technique {
