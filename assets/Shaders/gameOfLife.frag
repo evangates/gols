@@ -11,6 +11,10 @@ float gapS = 1.0 / m_TexWidth;		// horizontal gap between two texels/pixels
 float gapT = 1.0 / m_TexHeight;		// vertical gap between two texels/pixels
 
 const int steps = 200;
+const float miracleChance = 0.005;
+const float seed = 2983749282.18937;
+
+highp float rand();
 
 int[3] countNeighbors(vec2 offsets[8]) {
   int neighbors[3];
@@ -108,7 +112,7 @@ bool alive(int neighbors, bool alreadyAlive) {
     return neighbors >= 2 && neighbors <= 3;
   }
   else {
-    return neighbors == 3;
+    return neighbors == 3 || rand() < miracleChance;
   }
 }
 
@@ -144,4 +148,21 @@ void main() {
     alive(neighbors[2], color.b == m_AliveColor.b) ? m_AliveColor.b : applyDelta(delta.b, m_AliveColor.b, m_DeadColor.b, color.b),
     1
   );
+}
+
+
+////////////////////////////////////////////////////
+// random number generation
+////////////////////////////////////////////////////
+highp float rand(vec2 co) {
+  highp float a = 12.9898;
+  highp float b = 78.233;
+  highp float c = 43758.5453;
+  highp float dt= dot(co.xy ,vec2(a,b));
+  highp float sn= mod(dt,3.14);
+  return fract(sin(sn) * c);
+}
+
+highp float rand() {
+  return rand(TexCoord);
 }
