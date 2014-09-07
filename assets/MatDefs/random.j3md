@@ -1,21 +1,21 @@
 MaterialDef random MaterialDef {
 
-    MaterialParameters {
-		Texture2D Texture
-		Int TexWidth
-		Int TexHeight
+  MaterialParameters {
+    Texture2D Texture
+    Int TexWidth
+    Int TexHeight
 
-		Color AliveColor
-		Color DeadColor
+    Color AliveColor
+    Color DeadColor
+  }
+
+  Technique {
+    VertexShader GLSL100:   Shaders/gameOfLife.vert
+    FragmentShader GLSL100: Shaders/gameOfLife.frag
+
+    WorldParameters {
+      WorldViewProjectionMatrix
     }
-
-    Technique {
-        VertexShader GLSL100:   Shaders/gameOfLife.vert
-        FragmentShader GLSL100: Shaders/gameOfLife.frag
-
-        WorldParameters {
-            WorldViewProjectionMatrix
-        }
-    }
+  }
 
 }

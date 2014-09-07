@@ -10,6 +10,106 @@ varying vec2 TexCoord;
 float gapS = 1.0 / m_TexWidth;		// horizontal gap between two texels/pixels
 float gapT = 1.0 / m_TexHeight;		// vertical gap between two texels/pixels
 
+int[3] countNeighbors(vec2 offsets[8]) {
+  int neighbors[3];
+  for(int i = 0; i < 3; i++) {
+   neighbors[i] = 0;
+  }
+
+  // red
+	if ( texture2D(m_Texture, TexCoord + offsets[0]).r == m_AliveColor.r) {
+		neighbors[0]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[1]).r == m_AliveColor.r) {
+		neighbors[0]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[2]).r == m_AliveColor.r) {
+		neighbors[0]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[3]).r == m_AliveColor.r) {
+		neighbors[0]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[4]).r == m_AliveColor.r) {
+		neighbors[0]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[5]).r == m_AliveColor.r) {
+		neighbors[0]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[6]).r == m_AliveColor.r) {
+		neighbors[0]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[7]).r == m_AliveColor.r) {
+		neighbors[0]++;
+	}
+
+  // green
+	if ( texture2D(m_Texture, TexCoord + offsets[0]).g == m_AliveColor.g) {
+		neighbors[1]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[1]).g == m_AliveColor.g) {
+		neighbors[1]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[2]).g == m_AliveColor.g) {
+		neighbors[1]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[3]).g == m_AliveColor.g) {
+		neighbors[1]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[4]).g == m_AliveColor.g) {
+		neighbors[1]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[5]).g == m_AliveColor.g) {
+		neighbors[1]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[6]).g == m_AliveColor.g) {
+		neighbors[1]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[7]).g == m_AliveColor.g) {
+		neighbors[1]++;
+	}
+
+  // blue
+	if ( texture2D(m_Texture, TexCoord + offsets[0]).b == m_AliveColor.b) {
+		neighbors[2]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[1]).b == m_AliveColor.b) {
+		neighbors[2]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[2]).b == m_AliveColor.b) {
+		neighbors[2]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[3]).b == m_AliveColor.b) {
+		neighbors[2]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[4]).b == m_AliveColor.b) {
+		neighbors[2]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[5]).b == m_AliveColor.b) {
+		neighbors[2]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[6]).b == m_AliveColor.b) {
+		neighbors[2]++;
+	}
+	if ( texture2D(m_Texture, TexCoord + offsets[7]).b == m_AliveColor.b) {
+		neighbors[2]++;
+	}
+
+  return neighbors;
+}
+
+/**
+* determine if a cell should be alive given the number of neighbors and
+* current living state
+*/
+bool alive(int neighbors, bool alreadyAlive) {
+  if (alreadyAlive) {
+    return neighbors >= 2 && neighbors <= 3;
+  }
+  else {
+    return neighbors == 3;
+  }
+}
+
 void main() {
 
 	vec2 offsets[8];
@@ -22,57 +122,14 @@ void main() {
 	offsets[6] = vec2( -gapS, 0.0);		// west
 	offsets[7] = vec2( -gapS, gapT);	// northwest
 
-	int neighbors = 0;
+  int neighbors[3] = countNeighbors(offsets);
 
-	if ( texture2D(m_Texture, TexCoord + offsets[0]) == m_AliveColor) {
-		neighbors++;
-	}
-	if ( texture2D(m_Texture, TexCoord + offsets[1]) == m_AliveColor) {
-		neighbors++;
-	}
-	if ( texture2D(m_Texture, TexCoord + offsets[2]) == m_AliveColor) {
-		neighbors++;
-	}
-	if ( texture2D(m_Texture, TexCoord + offsets[3]) == m_AliveColor) {
-		neighbors++;
-	}
-	if ( texture2D(m_Texture, TexCoord + offsets[4]) == m_AliveColor) {
-		neighbors++;
-	}
-	if ( texture2D(m_Texture, TexCoord + offsets[5]) == m_AliveColor) {
-		neighbors++;
-	}
-	if ( texture2D(m_Texture, TexCoord + offsets[6]) == m_AliveColor) {
-		neighbors++;
-	}
-	if ( texture2D(m_Texture, TexCoord + offsets[7]) == m_AliveColor) {
-		neighbors++;
-	}
-	
 	vec4 color = texture2D(m_Texture, TexCoord);
 
-	// living
-	if (color == m_AliveColor) {
-		// cell dies
-		if (neighbors < 2 || neighbors > 3) {
-			color = m_DeadColor;
-		}
-		// cell refreshes
-		else {
-			color = m_AliveColor;
-		}
-	}
-	// dead cell
-	else {
-		// cell comes alive
-		if (neighbors == 3) {
-			color = m_AliveColor;
-		}
-		// cell dies
-		else {
-			color = m_DeadColor;
-		}
-	}
-
-	gl_FragColor = color;
+  gl_FragColor = vec4(
+    alive(neighbors[0], color.r == m_AliveColor.r) ? m_AliveColor.r : m_DeadColor.r,
+    alive(neighbors[1], color.g == m_AliveColor.g) ? m_AliveColor.g : m_DeadColor.g,
+    alive(neighbors[2], color.b == m_AliveColor.b) ? m_AliveColor.b : m_DeadColor.b,
+    1
+  );
 }
