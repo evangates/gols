@@ -10,6 +10,8 @@ varying vec2 TexCoord;
 float gapS = 1.0 / m_TexWidth;		// horizontal gap between two texels/pixels
 float gapT = 1.0 / m_TexHeight;		// vertical gap between two texels/pixels
 
+const int steps = 200;
+
 int[3] countNeighbors(vec2 offsets[8]) {
   int neighbors[3];
   for(int i = 0; i < 3; i++) {
@@ -110,6 +112,14 @@ bool alive(int neighbors, bool alreadyAlive) {
   }
 }
 
+float applyDelta(float delta, float aliveComponent, float deadComponent, float colorComponent) {
+  if (aliveComponent < deadComponent) {
+    return min(deadComponent, colorComponent + delta);
+  }
+  
+  return max(deadComponent, colorComponent - delta);
+}
+
 void main() {
 
 	vec2 offsets[8];
@@ -124,12 +134,14 @@ void main() {
 
   int neighbors[3] = countNeighbors(offsets);
 
+  vec4 delta = abs((m_AliveColor - m_DeadColor)) / float(steps);
+
 	vec4 color = texture2D(m_Texture, TexCoord);
 
   gl_FragColor = vec4(
-    alive(neighbors[0], color.r == m_AliveColor.r) ? m_AliveColor.r : m_DeadColor.r,
-    alive(neighbors[1], color.g == m_AliveColor.g) ? m_AliveColor.g : m_DeadColor.g,
-    alive(neighbors[2], color.b == m_AliveColor.b) ? m_AliveColor.b : m_DeadColor.b,
+    alive(neighbors[0], color.r == m_AliveColor.r) ? m_AliveColor.r : applyDelta(delta.r, m_AliveColor.r, m_DeadColor.r, color.r),
+    alive(neighbors[1], color.g == m_AliveColor.g) ? m_AliveColor.g : applyDelta(delta.g, m_AliveColor.g, m_DeadColor.g, color.g),
+    alive(neighbors[2], color.b == m_AliveColor.b) ? m_AliveColor.b : applyDelta(delta.b, m_AliveColor.b, m_DeadColor.b, color.b),
     1
   );
 }
